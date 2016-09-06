@@ -42,7 +42,7 @@ def get_keyboard(game, won_marks):
             code = str(i) + ',' + str(j)
             mark = ' '
             if player is not None:
-                if player == game.get_prev_player() and bool(won_marks) and (i, j) in won_marks:
+                if player == game.get_prev_player() and won_marks and (i, j) in won_marks:
                     mark = player.mark.upper()
                 else:
                     mark = player.mark
