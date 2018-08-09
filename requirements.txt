@@ -1,4 +1,13 @@
-certifi==2016.8.31
-future==0.15.2
-python-telegram-bot==5.0.0
-urllib3==1.16
+aiohttp==3.3.2
+aiotg==0.9.9
+argh==0.26.2
+async-timeout==3.0.0
+attrs==18.1.0
+chardet==3.0.4
+easyAI==1.0.0.4
+idna==2.7
+multidict==4.3.1
+pathtools==0.1.2
+PyYAML==3.13
+watchdog==0.8.3
+yarl==1.2.6
