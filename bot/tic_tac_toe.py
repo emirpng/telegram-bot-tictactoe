@@ -1,4 +1,4 @@
-__all__ = ['get_empty_board', 'make_move']
+__all__ = ['make_move']
 
 from easyAI import Negamax, TwoPlayersGame
 
@@ -9,29 +9,43 @@ class TicTacToe(TwoPlayersGame):
             1 2 3
     """
 
-    def __init__(self, board=None):
+    def __init__(self, board=None, n=3):
         if not board:
-            self.board = TicTacToe.get_empty_board()
+            self.board = TicTacToe.get_empty_board(n)
         else:
             self.board = board
+        self.n = n
         self.nplayer = 2 # player 1 starts.
 
     def possible_moves(self):
-        return [i + 1 for i, e in enumerate(self.board) if e == 0]
+        return [(i, j) for i, row in enumerate(self.board)
+                for j, value in enumerate(row) if value == 0]
 
     def make_move(self, move):
-        self.board[int(move) - 1] = self.nplayer
+        i, j = move
+        self.board[i][j] = self.nplayer
 
     def unmake_move(self, move):  # optional method (speeds up the AI)
-        self.board[int(move) - 1] = 0
+        i, j = move
+        self.board[i][j] = 0
 
     def lose(self):
-        """ Has the opponent "three in line ?" """
-        return any([all([(self.board[c - 1] == self.nopponent)
-                         for c in line])
-                    for line in [[1, 2, 3], [4, 5, 6], [7, 8, 9],  # horiz.
-                                 [1, 4, 7], [2, 5, 8], [3, 6, 9],  # vertical
-                                 [1, 5, 9], [3, 5, 7]]])  # diagonal
+        for row in self.board:
+            if all(value == self.nopponent for value in row):
+                return True
+        for j in range(self.n):
+            column = [row[j] for row in self.board]
+            if all(value == self.nopponent for value in column):
+                return True
+
+        diagonal = [row[i] for i, row in enumerate(self.board)]
+        if all(value == self.nopponent for value in diagonal):
+            return True
+
+        counter_diagonal = [row[-i - 1] for i, row in enumerate(self.board)]
+        if all(value == self.nopponent for value in counter_diagonal):
+            return True
+        return False
 
     def is_over(self):
         return not self.possible_moves() or self.lose()
@@ -43,13 +57,8 @@ class TicTacToe(TwoPlayersGame):
         return -100 if self.lose() else 0
 
     @staticmethod
-    def get_empty_board():
-        return [0 for i in range(9)]
-
-
-def get_empty_board():
-    return TicTacToe.get_empty_board()
-
+    def get_empty_board(n):
+        return [[0 for j in range(n)] for i in range(n)]
 
 def make_move(board):
     ai_algorithm = Negamax(6)
