@@ -1,13 +1,8 @@
-__all__ = ['make_move']
+from algorithms.nega_scout import get_move
 
-from easyAI import Negamax, TwoPlayersGame
-
-class TicTacToe(TwoPlayersGame):
-    """ The board positions are numbered as follows:
-            7 8 9
-            4 5 6
-            1 2 3
-    """
+class TicTacToe:
+    EMPTY_VALUE = None
+    WIN_POINTS = 100
 
     def __init__(self, board=None, n=3):
         if not board:
@@ -15,55 +10,70 @@ class TicTacToe(TwoPlayersGame):
         else:
             self.board = board
         self.n = n
-        self.nplayer = 2 # player 1 starts.
+        self.player_value = -1
 
     def possible_moves(self):
-        return [(i, j) for i, row in enumerate(self.board)
-                for j, value in enumerate(row) if value == 0]
+        for i, row in enumerate(self.board):
+            for j, value in enumerate(row):
+                if value == TicTacToe.EMPTY_VALUE:
+                    yield i, j
 
     def make_move(self, move):
         i, j = move
-        self.board[i][j] = self.nplayer
+        self.board[i][j] = self.player_value
 
-    def unmake_move(self, move):  # optional method (speeds up the AI)
+    def unmake_move(self, move):
         i, j = move
-        self.board[i][j] = 0
-
-    def lose(self):
-        for row in self.board:
-            if all(value == self.nopponent for value in row):
-                return True
-        for j in range(self.n):
-            column = [row[j] for row in self.board]
-            if all(value == self.nopponent for value in column):
-                return True
-
-        diagonal = [row[i] for i, row in enumerate(self.board)]
-        if all(value == self.nopponent for value in diagonal):
-            return True
-
-        counter_diagonal = [row[-i - 1] for i, row in enumerate(self.board)]
-        if all(value == self.nopponent for value in counter_diagonal):
-            return True
-        return False
+        self.board[i][j] = TicTacToe.EMPTY_VALUE
 
     def is_over(self):
-        return not self.possible_moves() or self.lose()
+        return not next(self.possible_moves(), None) or \
+               any(abs(self.get_line_score(line)) == self.WIN_POINTS
+                   for line in self.get_lines())
 
-    def show(self):
-        pass
+    def get_lines(self):
+        for row in self.board:
+            yield row
+        for j in range(self.n):
+            column = [row[j] for row in self.board]
+            yield column
+        diagonal = [row[i] for i, row in enumerate(self.board)]
+        yield diagonal
+        counter_diagonal = [row[-i - 1] for i, row in enumerate(self.board)]
+        yield counter_diagonal
 
-    def scoring(self):
-        return -100 if self.lose() else 0
+    def get_line_score(self, line):
+        opponent_points = 0
+        player_points = 0
+        prev_value = None
+        for value in line:
+            if value == self.opponent_value:
+                if value == prev_value:
+                    opponent_points *= 10
+                else:
+                    opponent_points += 1
+            elif value == self.player_value:
+                if value == prev_value:
+                    player_points *= 10
+                else:
+                    player_points += 1
+            prev_value = value
+        return player_points - opponent_points
 
-    @staticmethod
-    def get_empty_board(n):
-        return [[0 for j in range(n)] for i in range(n)]
+    def get_score(self):
+        return sum(self.get_line_score(line) for line in self.get_lines())
 
-def make_move(board):
-    ai_algorithm = Negamax(6)
-    game = TicTacToe(board)
-    if not game.is_over():
-        move = ai_algorithm(game)
-        game.make_move(move)
-    return game.board
+    def switch_player(self):
+        self.player_value = self.opponent_value
+
+    async def make_ai_move(self):
+        move = await get_move(self)
+        self.make_move(move)
+
+    @classmethod
+    def get_empty_board(cls, n):
+        return [[cls.EMPTY_VALUE for j in range(n)] for i in range(n)]
+
+    @property
+    def opponent_value(self):
+        return -self.player_value

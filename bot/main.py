@@ -1,7 +1,7 @@
 import json
 from aiotg import Bot, Chat
 
-from tic_tac_toe import make_move, TicTacToe
+from tic_tac_toe import TicTacToe
 from config import API_TOKEN
 
 bot_server = Bot(api_token=API_TOKEN)
@@ -14,9 +14,8 @@ BOARDS = {}
 
 
 def get_keyboard(board):
-    # buttons = [[], [], []]
     buttons = []
-    move_map = {0: ' ', 1: 'X', 2: 'O'}
+    move_map = {TicTacToe.EMPTY_VALUE: ' ', 1: 'X', -1: 'O'}
     for i, row in enumerate(board):
         row_buttons = []
         for j, value in enumerate(row):
@@ -37,7 +36,7 @@ def get_keyboard(board):
 
 
 @bot_server.callback
-def handle_move(chat, update):
+async def handle_move(chat, update):
     query = update.src
     message = query['message']
     chat_id = message['chat']['id']
@@ -48,7 +47,8 @@ def handle_move(chat, update):
     except KeyError:
         return
     board[i][j] = 1
-    board = make_move(board)
+    game = TicTacToe(board)
+    await game.make_ai_move()
     BOARDS[chat_id] = board
     reply_markup = get_keyboard(board)
     chat.bot.edit_message_text(chat_id=chat_id, text='Game',
