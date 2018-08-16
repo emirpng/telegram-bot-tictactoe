@@ -15,16 +15,18 @@ BOARDS = {}
 
 def get_keyboard(board):
     buttons = []
-    move_map = {TicTacToe.EMPTY_VALUE: ' ', 1: 'X', -1: 'O'}
+    move_map = {
+        TicTacToe.EMPTY_VALUE:' ',
+        TicTacToe.PLAYER_ONE: 'X',
+        TicTacToe.PLAYER_TWO: 'O'}
     for i, row in enumerate(board):
         row_buttons = []
         for j, value in enumerate(row):
-            code = f'{i},{j}'
             mark = move_map[value]
             row_buttons.append({
                 'type': INLINE_BUTTON_TYPE,
                 'text': mark,
-                'callback_data': code
+                'callback_data': f'{i},{j}',
             })
         buttons.append(row_buttons)
     markup = {
@@ -46,9 +48,10 @@ async def handle_move(chat, update):
         board = BOARDS[chat_id]
     except KeyError:
         return
-    board[i][j] = 1
+    board[i][j] = TicTacToe.PLAYER_ONE
     game = TicTacToe(board)
-    await game.make_ai_move()
+    if not game.is_over():
+        await game.make_ai_move()
     BOARDS[chat_id] = board
     reply_markup = get_keyboard(board)
     chat.bot.edit_message_text(chat_id=chat_id, text='Game',

@@ -1,7 +1,9 @@
 from algorithms.nega_scout import get_move
 
 class TicTacToe:
-    EMPTY_VALUE = None
+    EMPTY_VALUE = 0
+    PLAYER_ONE = 1
+    PLAYER_TWO = 2
     WIN_POINTS = 100
 
     def __init__(self, board=None, n=3):
@@ -10,7 +12,7 @@ class TicTacToe:
         else:
             self.board = board
         self.n = n
-        self.player_value = -1
+        self.player_value = TicTacToe.PLAYER_TWO
 
     def possible_moves(self):
         for i, row in enumerate(self.board):
@@ -76,4 +78,6 @@ class TicTacToe:
 
     @property
     def opponent_value(self):
-        return -self.player_value
+        if self.player_value == TicTacToe.PLAYER_ONE:
+            return TicTacToe.PLAYER_TWO
+        return TicTacToe.PLAYER_ONE
