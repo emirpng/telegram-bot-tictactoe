@@ -6,13 +6,14 @@ class TicTacToe:
     PLAYER_TWO = 2
     WIN_POINTS = 100
 
-    def __init__(self, board=None, n=3):
+    def __init__(self, player_value, board=None, n=3):
         if not board:
             self.board = TicTacToe.get_empty_board(n)
         else:
             self.board = board
         self.n = n
-        self.player_value = TicTacToe.PLAYER_TWO
+        self.player_value = player_value
+        self.current_player_value = player_value
 
     def possible_moves(self):
         for i, row in enumerate(self.board):
@@ -22,7 +23,7 @@ class TicTacToe:
 
     def make_move(self, move):
         i, j = move
-        self.board[i][j] = self.player_value
+        self.board[i][j] = self.current_player_value
 
     def unmake_move(self, move):
         i, j = move
@@ -54,7 +55,7 @@ class TicTacToe:
                     opponent_points *= 10
                 else:
                     opponent_points += 1
-            elif value == self.player_value:
+            elif value == self.current_player_value:
                 if value == prev_value:
                     player_points *= 10
                 else:
@@ -66,7 +67,7 @@ class TicTacToe:
         return sum(self.get_line_score(line) for line in self.get_lines())
 
     def switch_player(self):
-        self.player_value = self.opponent_value
+        self.current_player_value = self.opponent_value
 
     async def make_ai_move(self):
         move = await get_move(self)
@@ -78,6 +79,6 @@ class TicTacToe:
 
     @property
     def opponent_value(self):
-        if self.player_value == TicTacToe.PLAYER_ONE:
+        if self.current_player_value == TicTacToe.PLAYER_ONE:
             return TicTacToe.PLAYER_TWO
         return TicTacToe.PLAYER_ONE

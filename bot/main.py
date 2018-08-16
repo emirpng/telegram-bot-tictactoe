@@ -19,7 +19,7 @@ def dump_cell_coord(i, j):
 
 
 def parse_callback(data):
-    board_dump, coord_dump = data.split(':')
+    player_value, board_dump, coord_dump = data.split(':')
     n = int(len(board_dump) ** 0.5)
     board = []
     str_index = 0
@@ -30,11 +30,12 @@ def parse_callback(data):
             str_index += 1
 
     i, j = (int(coord) for coord in coord_dump.split(','))
-    return board, (i, j)
+    return int(player_value), board, (i, j)
 
 
 
-def get_keyboard(board):
+def get_keyboard(game):
+    board = game.board
     buttons = []
     move_map = {
         TicTacToe.EMPTY_VALUE: ' ',
@@ -50,7 +51,8 @@ def get_keyboard(board):
             row_buttons.append({
                 'type': INLINE_BUTTON_TYPE,
                 'text': mark,
-                'callback_data': f'{board_dump}:{cell_coord_dump}',
+                'callback_data': f'{game.player_value}:'
+                                 f'{board_dump}:{cell_coord_dump}',
             })
         buttons.append(row_buttons)
     markup = {
@@ -61,28 +63,74 @@ def get_keyboard(board):
     return markup
 
 
+def get_choose_player_keyboard():
+    buttons = [
+        {
+            'type': INLINE_BUTTON_TYPE,
+            'text': 'As Player 1',
+            'callback_data': TicTacToe.PLAYER_ONE,
+        },
+        {
+            'type': INLINE_BUTTON_TYPE,
+            'text': 'As Player 2',
+            'callback_data': TicTacToe.PLAYER_TWO,
+        }
+    ]
+    markup = {
+        'type': INLINE_KEYBOARD_TYPE,
+        'inline_keyboard': [buttons],
+    }
+    return markup
+
+
 @bot_server.callback
-async def handle_move(chat, update):
+async def handle_callback(chat, update):
     query = update.src
     message = query['message']
     chat_id = message['chat']['id']
     message_id =  message['message_id']
-    board, (i, j) = parse_callback(query['data'])
-    board[i][j] = TicTacToe.PLAYER_ONE
-    game = TicTacToe(board)
-    if not game.is_over():
-        await game.make_ai_move()
-    reply_markup = get_keyboard(board)
+    data = query['data']
+    if len(data) == 1:
+        human_as_player_two = False
+        if int(data) == TicTacToe.PLAYER_TWO:
+            human_as_player_two = True
+        reply_markup = await first_move(human_as_player_two)
+    else:
+        reply_markup = await handle_move(data)
+
     chat.bot.edit_message_text(chat_id=chat_id, text='Game',
                            reply_markup=json.dumps(reply_markup),
                            message_id=message_id)
 
 
+async def handle_move(data):
+    player_value, board, (i, j) = parse_callback(data)
+    game = TicTacToe(player_value, board)
+    game.make_move((i, j))
+    game.switch_player()
+    if not game.is_over():
+        await game.make_ai_move()
+    reply_markup = get_keyboard(game)
+    return reply_markup
+
+
+async def first_move(human_as_player_two):
+    if human_as_player_two:
+        player_value = TicTacToe.PLAYER_TWO
+        game = TicTacToe(player_value)
+        game.switch_player()
+        await game.make_ai_move()
+    else:
+        player_value = TicTacToe.PLAYER_ONE
+        game = TicTacToe(player_value)
+    reply_markup = get_keyboard(game)
+    return reply_markup
+
+
 @bot_server.command('/start')
 def start(chat: Chat, match):
-    game = TicTacToe()
-    chat.send_text("Let's the game begin!",
-                   reply_markup=json.dumps(get_keyboard(game.board)))
+    chat.send_text("Choose player number",
+                   reply_markup=json.dumps(get_choose_player_keyboard()))
 
 
 if __name__ == '__main__':
