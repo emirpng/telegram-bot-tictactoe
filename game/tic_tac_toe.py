@@ -1,4 +1,4 @@
-from algorithms.nega_scout import get_move
+from game.nega_scout import get_move
 
 class TicTacToe:
     EMPTY_VALUE = 0

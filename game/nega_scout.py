@@ -1,7 +1,6 @@
 import asyncio
 
-
-DEPTH = 6
+from config import DEPTH
 
 
 async def _nega_scout(game, depth, alpha, beta):

@@ -1,7 +1,7 @@
 import json
 from aiotg import Bot, Chat
 
-from tic_tac_toe import TicTacToe
+from game.tic_tac_toe import TicTacToe
 from config import API_TOKEN
 
 bot_server = Bot(api_token=API_TOKEN)
@@ -132,6 +132,3 @@ def start(chat: Chat, match):
     chat.send_text("Choose player number",
                    reply_markup=json.dumps(get_choose_player_keyboard()))
 
-
-if __name__ == '__main__':
-    bot_server.run()
