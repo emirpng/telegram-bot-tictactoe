@@ -7,6 +7,6 @@ chardet==3.0.4
 idna==2.7
 multidict==4.3.1
 pathtools==0.1.2
-PyYAML==3.13
+PyYAML==6.0
 watchdog==0.8.3
 yarl==1.2.6
